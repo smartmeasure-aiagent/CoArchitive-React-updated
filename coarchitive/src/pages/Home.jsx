@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ArrowRight, ArrowLeft, Plus, Minus, Check, Copy } from "lucide-react";
 import { Link } from "../router.jsx";
-import BuildSequence from "../sequence/BuildSequence.jsx";
+import ArchHero from "../components/ArchHero.jsx";
 import { Reveal } from "../components/Motion.jsx";
 import Logo from "../components/Logo.jsx";
 import { IdeaIcon, MarkDiagram } from "../components/Marks.jsx";
@@ -675,7 +675,7 @@ function Contact() {
 export default function Home() {
   return (
     <>
-      <BuildSequence />
+      <ArchHero />
       <About />
       <Why />
       <Services />

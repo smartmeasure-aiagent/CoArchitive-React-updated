@@ -1,0 +1,344 @@
+/* Homepage architecture-showcase hero (ArchHero.jsx) */
+
+.arch-hero {
+  position: relative;
+  background: linear-gradient(180deg, #e3e8e2 0%, var(--sand) 62%, #d1c7b1 100%);
+}
+
+/* scroll-driven: tall section, pinned stage inside */
+.arch-hero-scroll {
+  height: calc(var(--steps, 5) * 86vh);
+}
+.arch-hero-scroll .arch-hero-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* static (no WebGL) and edit variants are a single viewport */
+.arch-hero-static,
+.arch-hero-edit {
+  min-height: clamp(560px, 94vh, 1000px);
+  display: flex;
+}
+.arch-hero-edit .arch-hero-stage,
+.arch-hero-static .arch-hero-stage {
+  position: relative;
+  width: 100%;
+}
+
+.arch-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.arch-hero-canvas,
+.arch-hero-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.9s var(--ease, ease);
+}
+.arch-hero-canvas {
+  display: block;
+}
+.arch-hero-poster {
+  object-fit: cover;
+  object-position: center 56%;
+}
+.arch-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(15, 37, 24, 0.66) 0%, rgba(15, 37, 24, 0.3) 40%, rgba(15, 37, 24, 0) 72%),
+    linear-gradient(0deg, rgba(15, 37, 24, 0.52) 0%, rgba(15, 37, 24, 0) 46%);
+}
+
+/* ---- copy ---- */
+.arch-hero-copywrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.arch-step {
+  position: absolute;
+  left: var(--gut);
+  right: var(--gut);
+  bottom: clamp(92px, 15vh, 190px);
+  width: min(100%, var(--maxw));
+  margin: 0 auto;
+  will-change: opacity, transform;
+}
+
+.arch-hero-copy,
+.arch-step {
+  color: var(--paper-hi);
+}
+.arch-hero-static .arch-hero-copy {
+  position: relative;
+  z-index: 2;
+  align-self: flex-end;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--gut) clamp(56px, 8vh, 120px);
+}
+
+.arch-hero .eyebrow {
+  color: var(--tan-hi);
+}
+.arch-hero .d1 {
+  color: #fff;
+  max-width: 15ch;
+  margin: 14px 0 0;
+  text-wrap: balance;
+}
+.arch-hero .d2 {
+  color: #fff;
+  max-width: 18ch;
+  margin: 12px 0 0;
+}
+.arch-hero .d1 em,
+.arch-hero .d2 em {
+  color: var(--tan-hi);
+  font-style: italic;
+}
+.arch-hero .lede {
+  color: rgba(245, 242, 235, 0.92);
+  max-width: 46ch;
+  margin: 18px 0 0;
+}
+.arch-hero-cta {
+  margin-top: 28px;
+}
+
+/* scroll cue under the hero step */
+.arch-hero-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 235, 0.8);
+}
+.arch-hero-cue i {
+  width: 1px;
+  height: 26px;
+  background: linear-gradient(var(--tan-hi), transparent);
+  display: inline-block;
+  animation: arch-scroll 1.8s var(--ease, ease) infinite;
+  transform-origin: top;
+}
+@keyframes arch-scroll {
+  0% { transform: scaleY(0); opacity: 0; }
+  40% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0); opacity: 0; transform-origin: bottom; }
+}
+
+/* ---- act rail (bottom-right) ---- */
+.arch-hero-rail {
+  position: absolute;
+  z-index: 3;
+  right: var(--gut);
+  bottom: clamp(92px, 15vh, 190px);
+  width: min(190px, 34vw);
+  color: rgba(245, 242, 235, 0.86);
+  pointer-events: none;
+  text-align: right;
+}
+.arch-hero-rail-track {
+  height: 2px;
+  background: rgba(245, 242, 235, 0.22);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.arch-hero-rail-track i {
+  display: block;
+  height: 100%;
+  background: var(--tan-hi);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.arch-hero-rail ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.arch-hero-rail li {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  opacity: 0.4;
+  transition: opacity 0.3s var(--ease, ease);
+}
+.arch-hero-rail li.on {
+  opacity: 1;
+}
+.arch-hero-rail li b {
+  color: var(--tan-hi);
+  font-weight: 500;
+}
+
+.arch-hero-skip {
+  position: absolute;
+  z-index: 4;
+  right: var(--gut);
+  top: calc(var(--hdr-h, 68px) + 16px);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(15, 37, 24, 0.5);
+  color: var(--paper-hi);
+  border: 1px solid rgba(245, 242, 235, 0.22);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.arch-hero-skip:hover {
+  background: rgba(15, 37, 24, 0.75);
+}
+
+/* ---- edit mode: stacked, fully visible quotes ---- */
+.arch-hero-editcol {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: calc(var(--hdr-h, 68px) + 40px) var(--gut) 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  align-self: flex-start;
+  max-height: 100vh;
+  overflow: auto;
+}
+.arch-step-static {
+  position: relative;
+  padding: 18px 0;
+  border-top: 1px solid rgba(245, 242, 235, 0.18);
+}
+.arch-step-static:first-child {
+  border-top: 0;
+}
+.arch-step-static .d1 {
+  font-size: clamp(28px, 4vw, 44px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arch-hero-cue i {
+    animation: none;
+  }
+  .arch-hero-canvas,
+  .arch-hero-poster {
+    transition: none;
+  }
+}
+
+/* ---- admin variant picker ---- */
+.arch-pick {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--hdr-h, 68px) + 14px);
+  right: var(--gut);
+  width: min(300px, calc(100vw - 32px));
+  background: rgba(15, 37, 24, 0.95);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 12px 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(6px);
+  font-family: var(--sans);
+}
+.arch-pick-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin-bottom: 9px;
+}
+.arch-pick-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.arch-pick-item {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  background: #0b1a11;
+  color: #fff;
+  text-align: left;
+  display: block;
+}
+.arch-pick-item img {
+  width: 100%;
+  height: 52px;
+  object-fit: cover;
+  display: block;
+  opacity: 0.82;
+}
+.arch-pick-item b {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.arch-pick-item span {
+  display: block;
+  font-size: 10.5px;
+  line-height: 1.2;
+  padding: 5px 6px;
+  opacity: 0.85;
+}
+.arch-pick-item.on {
+  border-color: var(--coa-ring, #2f8f5b);
+}
+.arch-pick-item.on img,
+.arch-pick-item:hover img {
+  opacity: 1;
+}
+.arch-pick small {
+  display: block;
+  margin-top: 8px;
+  font-size: 10.5px;
+  opacity: 0.6;
+}
+
+@media (max-width: 760px) {
+  .arch-pick {
+    top: auto;
+    bottom: 84px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+  .arch-hero-rail {
+    display: none;
+  }
+}

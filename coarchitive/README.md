@@ -83,6 +83,18 @@ to all visitors. Images upload to a public `site-images` Storage bucket. See
 [`src/content/`](src/content/) for the store (`ContentContext.jsx`) and the
 inline-edit primitives (`Editable.jsx` — `T`, `EImg`, `EBg`).
 
+## Homepage animation (3 designs, admin-switchable)
+
+The home page opens on a scroll-driven 3D build sequence that assembles one of
+three delivered architecture scenes (`public/architecture/models/Architecture-1
+/2/3.glb`), re-coloured into the site's sand/green palette. Design 1 is the
+default. In **Edit mode** an admin sees a picker on the hero to switch to design
+2 or 3; the choice is saved in Supabase (`home.animation.variant`) so every
+visitor gets it. Each step's caption is editable inline like the rest of the
+site. Code: [`src/components/ArchHero.jsx`](src/components/ArchHero.jsx) +
+[`src/sequence/archScene.js`](src/sequence/archScene.js). Where WebGL is
+unavailable, the matching poster frame stands in.
+
 ## Editing content in code
 
 Almost everything is in [`src/data.js`](src/data.js) — nav items, the eight expertise verticals,
