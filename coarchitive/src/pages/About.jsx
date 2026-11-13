@@ -3,27 +3,37 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "../router.jsx";
 import { PageHero, SectionHead, Stats, Principles, HoverList, AboutStory } from "../components/UI.jsx";
 import { Reveal } from "../components/Motion.jsx";
+import { T, EBg } from "../content/Editable.jsx";
 import { STATS, VALUES, SECTORS, DIRECTORS, TEAM, ABOUT_STORY } from "../data.js";
 
 // People and About are one page: the story first, then who carries it.
 
 // Portrait stacks the real photo over a placeholder. If public/team/<slug>.jpg
 // is missing the browser just paints the layer beneath it.
-function Person({ name, role, quals, bio, photo, fallback, delay }) {
+function Person({ ek, name, role, quals, bio, photo, fallback, delay }) {
   return (
     <Reveal as="article" variant="clip" className="person" delay={delay}>
-      <div
+      <EBg
+        k={`${ek}.photo`}
+        layers={[photo, fallback]}
         className="person-img"
         role="img"
         aria-label={name}
-        style={{ backgroundImage: `url(${photo}), url(${fallback})` }}
       />
-      <h3>{name}</h3>
-      {role && <span>{role}</span>}
+      <T as="h3" k={`${ek}.name`} markup={false}>
+        {name}
+      </T>
+      {role && (
+        <T as="span" k={`${ek}.role`} markup={false}>
+          {role}
+        </T>
+      )}
       {quals && (
         <ul className="person-quals">
-          {quals.map((q) => (
-            <li key={q}>{q}</li>
+          {quals.map((q, i) => (
+            <T as="li" key={i} k={`${ek}.qual.${i}`} markup={false}>
+              {q}
+            </T>
           ))}
         </ul>
       )}
@@ -31,7 +41,9 @@ function Person({ name, role, quals, bio, photo, fallback, delay }) {
         <details className="person-bio">
           <summary>Read profile</summary>
           {bio.map((para, i) => (
-            <p key={i}>{para}</p>
+            <T as="p" key={i} k={`${ek}.bio.${i}`} markup={false} multiline>
+              {para}
+            </T>
           ))}
         </details>
       )}
@@ -39,17 +51,21 @@ function Person({ name, role, quals, bio, photo, fallback, delay }) {
   );
 }
 
-function PeopleGroup({ index, label, blurb, people, children }) {
+function PeopleGroup({ ek, index, label, blurb, people, children }) {
   return (
     <div className="people-group">
       <Reveal as="header" className="people-group-head">
         <span className="people-group-index">{index}</span>
-        <h3>{label}</h3>
-        <p>{blurb}</p>
+        <T as="h3" k={`${ek}.label`} markup={false}>
+          {label}
+        </T>
+        <T as="p" k={`${ek}.blurb`} markup={false}>
+          {blurb}
+        </T>
       </Reveal>
       <div className="people-grid three">
         {people.map((p, i) => (
-          <Person key={p.name} {...p} delay={i * 110} />
+          <Person key={p.name} ek={`${ek}.${i}`} {...p} delay={i * 110} />
         ))}
         {children && (
           <Reveal variant="clip" delay={people.length * 110}>
@@ -73,6 +89,7 @@ export default function About() {
   return (
     <>
       <PageHero
+        ek="hero.about"
         eyebrow="About"
         title="We connect disciplines to solve *complex challenges.*"
         lede="Innovative. Sustainable. Data-driven. CoArchitive was built for projects where the problem crosses conventional boundaries."
@@ -80,50 +97,59 @@ export default function About() {
         meta={["Est. Telangana, India", "8 disciplines", "One integrated team"]}
       />
 
-      <AboutStory story={ABOUT_STORY} />
+      <AboutStory ek="about.story" story={ABOUT_STORY} />
 
       <section className="sec">
-        <SectionHead kicker="Directors & team" title="Different expertise. *Shared purpose.*" />
+        <SectionHead ek="about.people.head" kicker="Directors & team" title="Different expertise. *Shared purpose.*" />
         <PeopleGroup
+          ek="about.directors"
           index="01"
           label="Directors"
           blurb="Setting the direction of the practice and leading every engagement."
           people={DIRECTORS}
         />
         <PeopleGroup
+          ek="about.team"
           index="02"
           label="Our team"
           blurb="Expert members who carry the work from first brief to delivery."
           people={TEAM}
         >
           <Link to="careers" className="person-join">
-            <span className="eyebrow">Careers</span>
-            <strong>Your place could be here.</strong>
+            <T as="span" k="about.join.eyebrow" markup={false} className="eyebrow">
+              Careers
+            </T>
+            <T as="strong" k="about.join.title" markup={false}>
+              Your place could be here.
+            </T>
             <em>
-              See open roles <ArrowRight size={15} />
+              <T as="span" k="about.join.link" markup={false}>
+                See open roles
+              </T>{" "}
+              <ArrowRight size={15} />
             </em>
           </Link>
         </PeopleGroup>
       </section>
 
       <section className="sec grey">
-        <SectionHead kicker="Our mark" title="The meaning *behind the logo*" />
-        <Principles items={LOGO_MEANING} />
+        <SectionHead ek="about.mark.head" kicker="Our mark" title="The meaning *behind the logo*" />
+        <Principles ek="about.mark" items={LOGO_MEANING} />
       </section>
 
       <section className="sec dark">
-        <SectionHead kicker="In numbers" title="The practice *at a glance*" />
-        <Stats items={STATS} />
+        <SectionHead ek="about.numbers.head" kicker="In numbers" title="The practice *at a glance*" />
+        <Stats ek="about.numbers" items={STATS} />
       </section>
 
       <section className="sec">
-        <SectionHead kicker="Who we work with" title="Four kinds of client, *one way of working*" link="contact" linkLabel="Start a conversation" />
-        <HoverList items={SECTORS.map((s) => ({ ...s, to: "contact" }))} />
+        <SectionHead ek="about.clients.head" kicker="Who we work with" title="Four kinds of client, *one way of working*" link="contact" linkLabel="Start a conversation" />
+        <HoverList ek="about.clients" items={SECTORS.map((s) => ({ ...s, to: "contact" }))} />
       </section>
 
       <section className="sec grey">
-        <SectionHead kicker="Guiding principles" title="What we hold to" />
-        <Principles items={VALUES} />
+        <SectionHead ek="about.principles.head" kicker="Guiding principles" title="What we hold to" />
+        <Principles ek="about.principles" items={VALUES} />
       </section>
     </>
   );

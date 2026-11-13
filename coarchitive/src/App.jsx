@@ -11,6 +11,8 @@ import Architecture from "./pages/Architecture.jsx";
 import Planning from "./pages/Planning.jsx";
 import Careers from "./pages/Careers.jsx";
 import Contact from "./pages/Contact.jsx";
+import Admin from "./pages/Admin.jsx";
+import AdminBar from "./components/AdminBar.jsx";
 
 const PAGES = {
   home: Home,
@@ -22,6 +24,7 @@ const PAGES = {
   about: About,
   careers: Careers,
   contact: Contact,
+  admin: Admin,
 };
 
 const releaseEntrance = () => document.documentElement.classList.remove("intro");
@@ -39,6 +42,7 @@ export default function App({ intro = false }) {
         <Page />
       </main>
       <Footer />
+      <AdminBar />
     </div>
   );
 }

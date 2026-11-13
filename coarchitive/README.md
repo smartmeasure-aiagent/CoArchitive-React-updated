@@ -68,7 +68,22 @@ public/brand/         drop the logo artwork here — see its README.txt
 
 `npm run build` → `dist/`, then `npm run preview`
 
-## Editing content
+## Editing content — the admin editor
+
+The site has a built-in admin at **`/#/admin`**. Once connected to a free
+Supabase project (one-time setup in [`ADMIN_SETUP.md`](ADMIN_SETUP.md)), you can
+log in, turn on **Edit mode**, and click any text or image on the site to change
+it. Edits save to Supabase and every visitor sees them immediately — no code
+changes, no redeploy. Until Supabase is connected, the site runs on the built-in
+defaults below and `/#/admin` shows the setup steps.
+
+How it works: every editable field has a stable key and ships a *default* value
+from the code; an admin override is stored in the `site_content` table and shown
+to all visitors. Images upload to a public `site-images` Storage bucket. See
+[`src/content/`](src/content/) for the store (`ContentContext.jsx`) and the
+inline-edit primitives (`Editable.jsx` — `T`, `EImg`, `EBg`).
+
+## Editing content in code
 
 Almost everything is in [`src/data.js`](src/data.js) — nav items, the eight expertise verticals,
 projects, insights, offices, open roles and values. Company details (name, tagline, head office,

@@ -5,6 +5,8 @@ import BuildSequence from "../sequence/BuildSequence.jsx";
 import { Reveal } from "../components/Motion.jsx";
 import Logo from "../components/Logo.jsx";
 import { IdeaIcon, MarkDiagram } from "../components/Marks.jsx";
+import { T, EImg } from "../content/Editable.jsx";
+import { useContent } from "../content/ContentContext.jsx";
 import {
   ABOUT_STORY,
   ARCH_IDEAS,
@@ -27,14 +29,22 @@ import "../home.css";
    who we are → why we exist → what we do → how we think → what we have drawn
    → who we are made of → what we are writing → how to join → how to start. */
 
-const Head = ({ eyebrow, lines, accent, className = "" }) => (
+const Head = ({ ek, eyebrow, lines, accent, className = "" }) => (
   <Reveal className={`sec-head ${className}`}>
-    {eyebrow && <span className="eyebrow">{eyebrow}</span>}
+    {eyebrow && (
+      <T as="span" k={`${ek}.eyebrow`} markup={false} className="eyebrow">
+        {eyebrow}
+      </T>
+    )}
     <h2 className="d2">
-      {lines.map((l) => (
-        <span key={l}>{l} </span>
-      ))}
-      {accent && <em className="ac">{accent}</em>}
+      <T as="span" k={`${ek}.lines`} markup={false}>
+        {lines.join(" ")}
+      </T>{" "}
+      {accent && (
+        <T as="em" k={`${ek}.accent`} markup={false} className="ac">
+          {accent}
+        </T>
+      )}
     </h2>
   </Reveal>
 );
@@ -48,31 +58,48 @@ function About() {
       <div className="wrap h-about-grid">
         <div>
           <Reveal>
-            <span className="eyebrow">About CoArchitive</span>
+            <T as="span" k="home.about.eyebrow" markup={false} className="eyebrow">
+              About CoArchitive
+            </T>
           </Reveal>
           <div className="h-story">
             {ABOUT_STORY.stanzas.map((lines, i) => (
               <Reveal as="p" key={i} delay={i * 60} className="body-serif">
-                {lines.join(" ")}
+                <T as="span" k={`home.about.stanza.${i}`} markup={false} multiline>
+                  {lines.join(" ")}
+                </T>
               </Reveal>
             ))}
             <Reveal as="p" delay={240} className="body-serif h-motto">
-              <em>{ABOUT_STORY.motto}</em> {ABOUT_STORY.closing}
+              <em>
+                <T as="span" k="home.about.motto" markup={false}>
+                  {ABOUT_STORY.motto}
+                </T>
+              </em>{" "}
+              <T as="span" k="home.about.closing" markup={false}>
+                {ABOUT_STORY.closing}
+              </T>
             </Reveal>
           </div>
         </div>
 
         <Reveal className="h-mark" delay={120}>
-          <span className="mono">Our mark</span>
+          <T as="span" k="home.mark.label" markup={false} className="mono">
+            Our mark
+          </T>
           <MarkDiagram />
           <dl>
-            {MARK.map(([glyph, title, body]) => (
-              <div key={title}>
+            {MARK.map(([glyph, title, body], i) => (
+              <div key={i}>
                 <dt>
                   <i aria-hidden="true">{glyph}</i>
-                  {title}
+                  <T as="span" k={`home.mark.${i}.title`} markup={false}>
+                    {title}
+                  </T>
                 </dt>
-                <dd>{body}</dd>
+                <T as="dd" k={`home.mark.${i}.body`} markup={false}>
+                  {body}
+                </T>
               </div>
             ))}
           </dl>
@@ -88,22 +115,38 @@ function Why() {
   return (
     <section className="h-why">
       <Reveal variant="clip" className="h-why-img">
-        <img src={WHY.img} alt="" loading="lazy" decoding="async" />
-        <span className="mono h-why-cap">{WHY.caption}</span>
+        <EImg k="home.why.img" src={WHY.img} alt="" loading="lazy" decoding="async" />
+        <T as="span" k="home.why.caption" markup={false} className="mono h-why-cap">
+          {WHY.caption}
+        </T>
       </Reveal>
       <div className="h-why-copy on-green">
         <Reveal>
-          <span className="eyebrow">{WHY.eyebrow}</span>
+          <T as="span" k="home.why.eyebrow" markup={false} className="eyebrow">
+            {WHY.eyebrow}
+          </T>
         </Reveal>
         <Reveal as="h2" className="d2" delay={60}>
-          {WHY.head[0]} <em className="ac">{WHY.head[1]}</em>
+          <T as="span" k="home.why.head0" markup={false}>
+            {WHY.head[0]}
+          </T>{" "}
+          <em className="ac">
+            <T as="span" k="home.why.head1" markup={false}>
+              {WHY.head[1]}
+            </T>
+          </em>
         </Reveal>
         <Reveal as="p" className="lede" delay={120}>
-          {WHY.body}
+          <T as="span" k="home.why.body" markup={false} multiline>
+            {WHY.body}
+          </T>
         </Reveal>
         <Reveal delay={180}>
           <a className="btn tan" href="#services" onClick={jump("services")}>
-            Explore our services <ArrowRight size={16} />
+            <T as="span" k="home.why.cta" markup={false}>
+              Explore our services
+            </T>{" "}
+            <ArrowRight size={16} />
           </a>
         </Reveal>
       </div>
@@ -127,10 +170,12 @@ function Services() {
     <section className="section h-services" id="services">
       <span className="ghost">Services</span>
       <div className="wrap">
-        <Head eyebrow="What we do" lines={["Five practices,"]} accent="one team." />
+        <Head ek="home.services" eyebrow="What we do" lines={["Five practices,"]} accent="one team." />
         <Reveal as="p" className="lede h-services-lede" delay={80}>
-          From a single home to a regional plan. Pick a practice to see the services and the
-          tools we use.
+          <T as="span" k="home.services.lede" markup={false} multiline>
+            From a single home to a regional plan. Pick a practice to see the services and the
+            tools we use.
+          </T>
         </Reveal>
 
         <div className="h-tabs" role="tablist" aria-label="Practices">
@@ -142,29 +187,41 @@ function Services() {
               className={n === i ? "on" : ""}
               onClick={() => setI(n)}
             >
-              {t.tab}
+              <T as="span" k={`practice.${t.key}.tab`} markup={false}>
+                {t.tab}
+              </T>
             </button>
           ))}
         </div>
 
         <div className="h-practice" key={p.key}>
           <figure className="h-practice-img">
-            <img src={p.img} alt="" loading="lazy" decoding="async" />
-            <figcaption className="mono">{p.tab}</figcaption>
+            <EImg k={`practice.${p.key}.img`} src={p.img} alt="" loading="lazy" decoding="async" />
+            <figcaption className="mono">
+              <T as="span" k={`practice.${p.key}.tab`} markup={false}>
+                {p.tab}
+              </T>
+            </figcaption>
           </figure>
 
           <div className="h-practice-copy">
-            <h3 className="d3">{p.title}</h3>
-            <p className="lede">{p.body}</p>
+            <T as="h3" k={`practice.${p.key}.title`} markup={false} className="d3">
+              {p.title}
+            </T>
+            <T as="p" k={`practice.${p.key}.body`} markup={false} multiline className="lede">
+              {p.body}
+            </T>
 
             <span className="mono h-practice-label">Services</span>
             <ul className="h-service-list">
-              {p.services.map((s) => {
+              {p.services.map((s, si) => {
                 const name = typeof s === "string" ? s : s.name;
                 const note = typeof s === "string" ? null : s.note;
                 return (
-                  <li key={name}>
-                    <span>{name}</span>
+                  <li key={si}>
+                    <T as="span" k={`practice.${p.key}.svc.${si}`} markup={false}>
+                      {name}
+                    </T>
                     {note && <i>{note}</i>}
                   </li>
                 );
@@ -202,22 +259,29 @@ function Ideas() {
       <span className="ghost">Ideas</span>
       <div className="wrap">
         <Head
+          ek="home.ideas"
           eyebrow="What architecture means to us"
           lines={["Buildings that give back,"]}
           accent="to people, place and climate."
         />
         <Reveal as="p" className="lede h-ideas-lede" delay={80}>
-          We design from climate and context first. Orientation, shade, air and local materials
-          shape the plan before anything else, so comfort is built into the structure instead of
-          added with machines.
+          <T as="span" k="home.ideas.lede" markup={false} multiline>
+            We design from climate and context first. Orientation, shade, air and local materials
+            shape the plan before anything else, so comfort is built into the structure instead of
+            added with machines.
+          </T>
         </Reveal>
 
         <div className="h-idea-grid">
           {ARCH_IDEAS.map(([title, body], n) => (
-            <Reveal className="h-idea" key={title} delay={n * 50}>
+            <Reveal className="h-idea" key={n} delay={n * 50}>
               <IdeaIcon n={n} />
-              <h3 className="d4">{title}</h3>
-              <p>{body}</p>
+              <T as="h3" k={`home.idea.${n}.title`} markup={false} className="d4">
+                {title}
+              </T>
+              <T as="p" k={`home.idea.${n}.body`} markup={false} multiline>
+                {body}
+              </T>
             </Reveal>
           ))}
         </div>
@@ -238,7 +302,7 @@ function Projects() {
     <section className="section h-projects" id="projects">
       <span className="ghost">Projects</span>
       <div className="wrap">
-        <Head eyebrow="Residential" lines={["Homes on the"]} accent="drawing board." />
+        <Head ek="home.projects" eyebrow="Residential" lines={["Homes on the"]} accent="drawing board." />
 
         <div className="h-chips">
           {FILTERS.map((x) => (
@@ -249,29 +313,40 @@ function Projects() {
         </div>
 
         <div className="h-proj-grid">
-          {list.map((p, n) => (
-            <Reveal className="h-proj" key={p.title} delay={n * 70}>
-              <figure>
-                <img src={p.img} alt="" loading="lazy" decoding="async" />
-                <span className="h-sample mono">Sample</span>
-                <span className={`h-status mono ${p.status.toLowerCase()}`}>{p.status}</span>
-              </figure>
-              <h3 className="d4">{p.title}</h3>
-              <div className="h-proj-meta mono">
-                <span>{p.kind}</span>
-                <span>{p.size}</span>
-              </div>
-              <p>{p.body}</p>
-            </Reveal>
-          ))}
+          {list.map((p) => {
+            const n = SAMPLE_PROJECTS.indexOf(p);
+            return (
+              <Reveal className="h-proj" key={n} delay={0}>
+                <figure>
+                  <EImg k={`home.project.${n}.img`} src={p.img} alt="" loading="lazy" decoding="async" />
+                  <span className="h-sample mono">Sample</span>
+                  <span className={`h-status mono ${p.status.toLowerCase()}`}>{p.status}</span>
+                </figure>
+                <T as="h3" k={`home.project.${n}.title`} markup={false} className="d4">
+                  {p.title}
+                </T>
+                <div className="h-proj-meta mono">
+                  <T as="span" k={`home.project.${n}.kind`} markup={false}>
+                    {p.kind}
+                  </T>
+                  <T as="span" k={`home.project.${n}.size`} markup={false}>
+                    {p.size}
+                  </T>
+                </div>
+                <T as="p" k={`home.project.${n}.body`} markup={false} multiline>
+                  {p.body}
+                </T>
+              </Reveal>
+            );
+          })}
         </div>
 
         <Reveal className="h-demo">
           <span className="mono">Demo</span>
-          <p>
+          <T as="p" k="home.projects.demo" markup={false} multiline>
             These cards are placeholders with stock images. Real projects, photographs and
             locations replace them.
-          </p>
+          </T>
         </Reveal>
       </div>
     </section>
@@ -285,10 +360,16 @@ function Stats() {
     <section className="h-stats">
       <div className="wrap h-stat-grid">
         {HOME_STATS.map(([n, label, body], i) => (
-          <Reveal className="h-stat" key={label} delay={i * 70}>
-            <b>{n}</b>
-            <span className="mono">{label}</span>
-            <p>{body}</p>
+          <Reveal className="h-stat" key={i} delay={i * 70}>
+            <T as="b" k={`home.stat.${i}.n`} markup={false}>
+              {n}
+            </T>
+            <T as="span" k={`home.stat.${i}.label`} markup={false} className="mono">
+              {label}
+            </T>
+            <T as="p" k={`home.stat.${i}.body`} markup={false} multiline>
+              {body}
+            </T>
           </Reveal>
         ))}
       </div>
@@ -298,18 +379,24 @@ function Stats() {
 
 /* ----------------------------------------------------------- 07 · people */
 
-function Person({ p }) {
+function Person({ p, ek }) {
   const [open, setOpen] = useState(false);
   return (
     <Reveal className="h-person">
       <div className="h-portrait">
-        <img src={p.photo} alt="" loading="lazy" decoding="async" onError={fallback(p.fallback)} />
+        <EImg k={`${ek}.photo`} src={p.photo} alt="" loading="lazy" decoding="async" onError={fallback(p.fallback)} />
       </div>
-      <h3 className="d4">{p.name}</h3>
-      <span className="mono">{p.role}</span>
+      <T as="h3" k={`${ek}.name`} markup={false} className="d4">
+        {p.name}
+      </T>
+      <T as="span" k={`${ek}.role`} markup={false} className="mono">
+        {p.role}
+      </T>
       <ul className="h-quals">
-        {p.quals?.map((q) => (
-          <li key={q}>{q}</li>
+        {p.quals?.map((q, i) => (
+          <T as="li" key={i} k={`${ek}.qual.${i}`} markup={false}>
+            {q}
+          </T>
         ))}
       </ul>
       {p.bio && (
@@ -321,7 +408,9 @@ function Person({ p }) {
           {open && (
             <div className="h-bio">
               {p.bio.map((b, i) => (
-                <p key={i}>{b}</p>
+                <T as="p" key={i} k={`${ek}.bio.${i}`} markup={false} multiline>
+                  {b}
+                </T>
               ))}
             </div>
           )}
@@ -341,21 +430,30 @@ function People() {
     <section className="section h-people" id="people">
       <span className="ghost">People</span>
       <div className="wrap">
-        <Head eyebrow="People" lines={["Different expertise,"]} accent="shared purpose." />
+        <Head ek="home.people" eyebrow="People" lines={["Different expertise,"]} accent="shared purpose." />
         <div className="h-people-grid">
-          {DIRECTORS.map((p) => (
-            <Person key={p.name} p={p} />
+          {DIRECTORS.map((p, i) => (
+            <Person key={p.name} p={p} ek={`home.director.${i}`} />
           ))}
         </div>
 
-        <h3 className="d3 h-sub">Expert members</h3>
+        <T as="h3" k="home.people.sub" markup={false} className="d3 h-sub">
+          Expert members
+        </T>
         <div className="h-members">
-          {TEAM.map((m) => (
+          {TEAM.map((m, i) => (
             <Reveal className="h-member" key={m.name}>
-              <img src={m.photo} alt="" loading="lazy" decoding="async" onError={fallback(m.fallback)} />
+              <EImg k={`home.member.${i}.photo`} src={m.photo} alt="" loading="lazy" decoding="async" onError={fallback(m.fallback)} />
               <div>
-                <b>{m.name}</b>
-                <span className="mono">{m.role} · profile to be added</span>
+                <T as="b" k={`home.member.${i}.name`} markup={false}>
+                  {m.name}
+                </T>
+                <span className="mono">
+                  <T as="span" k={`home.member.${i}.role`} markup={false}>
+                    {m.role}
+                  </T>{" "}
+                  · profile to be added
+                </span>
               </div>
             </Reveal>
           ))}
@@ -371,16 +469,22 @@ function Notes() {
   return (
     <section className="section h-notes" id="blogs">
       <div className="wrap">
-        <Head eyebrow="Blogs" lines={["Notes from the"]} accent="drawing table." />
+        <Head ek="home.notes" eyebrow="Blogs" lines={["Notes from the"]} accent="drawing table." />
         <div className="h-note-grid">
           {NOTES.map(([tag, title, body], i) => (
-            <Reveal className="h-note" key={title} delay={i * 70}>
+            <Reveal className="h-note" key={i} delay={i * 70}>
               <div className="h-note-top mono">
-                <span>{tag}</span>
+                <T as="span" k={`home.note.${i}.tag`} markup={false}>
+                  {tag}
+                </T>
                 <span>Planned</span>
               </div>
-              <h3 className="d4">{title}</h3>
-              <p>{body}</p>
+              <T as="h3" k={`home.note.${i}.title`} markup={false} className="d4">
+                {title}
+              </T>
+              <T as="p" k={`home.note.${i}.body`} markup={false} multiline>
+                {body}
+              </T>
               <span className="mono h-soon">Coming soon</span>
             </Reveal>
           ))}
@@ -409,8 +513,10 @@ const MOSAIC = [
 
 function Careers() {
   const [copied, setCopied] = useState(false);
+  const { getValue } = useContent();
+  const email = getValue("contact.email", CONTACT.email);
   const copy = () => {
-    navigator.clipboard?.writeText(CONTACT.email).then(
+    navigator.clipboard?.writeText(email).then(
       () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -434,23 +540,29 @@ function Careers() {
         </Reveal>
 
         <div>
-          <Head eyebrow="Career" lines={["Your place"]} accent="could be here." />
+          <Head ek="home.career" eyebrow="Career" lines={["Your place"]} accent="could be here." />
           <Reveal as="p" className="lede" delay={60}>
-            We are a young, multidisciplinary practice. If you work across architecture, planning,
-            environment or GIS, we would like to hear from you.
+            <T as="span" k="home.career.lede" markup={false} multiline>
+              We are a young, multidisciplinary practice. If you work across architecture, planning,
+              environment or GIS, we would like to hear from you.
+            </T>
           </Reveal>
 
           <dl className="h-ways">
             {CAREER_WAYS.map(([title, body], i) => (
-              <Reveal key={title} delay={i * 60}>
-                <dt className="d4">{title}</dt>
-                <dd>{body}</dd>
+              <Reveal key={i} delay={i * 60}>
+                <T as="dt" k={`home.career.${i}.title`} markup={false} className="d4">
+                  {title}
+                </T>
+                <T as="dd" k={`home.career.${i}.body`} markup={false} multiline>
+                  {body}
+                </T>
               </Reveal>
             ))}
           </dl>
 
           <Reveal className="h-copy-row" delay={200}>
-            <span className="mono h-email">{CONTACT.email}</span>
+            <span className="mono h-email">{email}</span>
             <button className="btn ghost-btn sm" onClick={copy}>
               {copied ? <Check size={15} /> : <Copy size={15} />}
               {copied ? "Copied" : "Copy email"}
@@ -466,36 +578,58 @@ function Careers() {
 
 function Contact() {
   const [sent, setSent] = useState(false);
+  const { getValue } = useContent();
+  const email = getValue("contact.email", CONTACT.email);
+  const phone = getValue("contact.phone", CONTACT.phone);
   return (
     <section className="h-contact on-green" id="contact">
       <div className="wrap h-contact-grid">
         <div>
           <Reveal>
-            <span className="eyebrow">Start your journey with us</span>
+            <T as="span" k="home.contact.eyebrow" markup={false} className="eyebrow">
+              Start your journey with us
+            </T>
           </Reveal>
           <Reveal as="h2" className="d2" delay={60}>
-            Let&apos;s design <em className="ac">together.</em>
+            <T as="span" k="home.contact.head" markup={false}>
+              Let&apos;s design
+            </T>{" "}
+            <em className="ac">
+              <T as="span" k="home.contact.accent" markup={false}>
+                together.
+              </T>
+            </em>
           </Reveal>
 
           <dl className="h-contact-list">
             <div>
-              <dt className="mono">Email</dt>
+              <T as="dt" k="home.contact.emailLabel" markup={false} className="mono">
+                Email
+              </T>
               <dd>
-                <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+                <a href={`mailto:${email}`}>{email}</a>
               </dd>
             </div>
             <div>
-              <dt className="mono">Phone</dt>
+              <T as="dt" k="home.contact.phoneLabel" markup={false} className="mono">
+                Phone
+              </T>
               <dd>
-                <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
+                <a href={`tel:${phone.replace(/\s+/g, "")}`}>{phone}</a>
               </dd>
             </div>
             <div>
-              <dt className="mono">{HEAD_OFFICE.label}</dt>
-              <dd>{HEAD_OFFICE.lines.join(", ")}</dd>
+              <T as="dt" k="home.contact.officeLabel" markup={false} className="mono">
+                {HEAD_OFFICE.label}
+              </T>
+              <T as="dd" k="home.contact.officeLines" markup={false} multiline>
+                {HEAD_OFFICE.lines.join(", ")}
+              </T>
             </div>
             <div>
-              <dt className="mono">Follow</dt>
+              <T as="dt" k="home.contact.followLabel" markup={false} className="mono">
+                Follow
+              </T>
               <dd>
                 <a href={CONTACT.linkedin} target="_blank" rel="noreferrer">
                   LinkedIn · CoArchitive

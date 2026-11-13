@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MapPin, ArrowUpRight } from "lucide-react";
 import { PageHero, Contours } from "../components/UI.jsx";
 import { Reveal } from "../components/Motion.jsx";
+import { T } from "../content/Editable.jsx";
 import { OFFICES, HQ, CONTACT } from "../data.js";
 
 // Local time at the head office, refreshed every half minute.
@@ -22,6 +23,7 @@ export default function Offices() {
   return (
     <>
       <PageHero
+        ek="hero.offices"
         eyebrow="Offices"
         title="Where we *work from.*"
         lede="A central studio, regional teams and project offices established close to the work."
@@ -31,13 +33,19 @@ export default function Offices() {
       <section className="sec offices">
         <div className="office-list">
           {OFFICES.map((o, i) => (
-            <Reveal as="article" key={o.city} className="office" delay={i * 100}>
+            <Reveal as="article" key={i} className="office" delay={i * 100}>
               <span className="office-no">{String(i + 1).padStart(2, "0")}</span>
               <div className="office-city">
-                <h3>{o.city}</h3>
-                <span>{o.region}</span>
+                <T as="h3" k={`offices.${i}.city`} markup={false}>
+                  {o.city}
+                </T>
+                <T as="span" k={`offices.${i}.region`} markup={false}>
+                  {o.region}
+                </T>
               </div>
-              <p>{o.detail}</p>
+              <T as="p" k={`offices.${i}.detail`} markup={false} multiline>
+                {o.detail}
+              </T>
               <a href={`mailto:${o.email}`}>
                 {o.email} <ArrowUpRight size={15} />
               </a>
@@ -59,7 +67,9 @@ export default function Offices() {
             </span>
           </div>
           <div className="office-map-foot">
-            <strong>Medchal Malkajgiri</strong>
+            <T as="strong" k="offices.map.city" markup={false}>
+              Medchal Malkajgiri
+            </T>
             <span>
               {HQ.lat} · {HQ.lng}
             </span>

@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "../router.jsx";
 import Logo from "./Logo.jsx";
 import { useScrollFrame } from "./Motion.jsx";
+import { T } from "../content/Editable.jsx";
 import { NAV, TAGLINE } from "../data.js";
 
 export default function Header({ route }) {
@@ -36,20 +37,24 @@ export default function Header({ route }) {
         </Link>
 
         <nav className="hdr-nav">
-          {NAV.map((n) => (
+          {NAV.map((n, i) => (
             <Link
               key={n.label}
               to={n.to}
               anchor={n.anchor}
               className={route === n.to && !n.anchor ? "on" : ""}
             >
-              {n.label}
+              <T as="span" k={`nav.${i}.label`} markup={false}>
+                {n.label}
+              </T>
             </Link>
           ))}
         </nav>
 
         <Link to="contact" className="btn sm hdr-cta">
-          Book a consultation
+          <T as="span" k="nav.cta" markup={false}>
+            Book a consultation
+          </T>
         </Link>
 
         <button
@@ -77,11 +82,17 @@ export default function Header({ route }) {
               style={{ "--i": i }}
             >
               <span className="menu-no">{String(i + 1).padStart(2, "0")}</span>
-              {n.label}
+              <T as="span" k={`nav.${i}.label`} markup={false}>
+                {n.label}
+              </T>
               <ArrowRight size={20} />
             </Link>
           ))}
-          <p className="menu-tagline">{TAGLINE}</p>
+          <p className="menu-tagline">
+            <T as="span" k="company.tagline" markup={false}>
+              {TAGLINE}
+            </T>
+          </p>
         </div>
       </div>
     </>

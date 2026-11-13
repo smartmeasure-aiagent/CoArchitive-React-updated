@@ -6,6 +6,7 @@ export default function Planning() {
   return (
     <>
       <PageHero
+        ek="hero.planning"
         eyebrow="Planning"
         title="Cities and regions planned *as one system.*"
         lede="Urban and regional planning, GIS and transportation brought together — so growth, land and movement are decided as one."
@@ -14,29 +15,30 @@ export default function Planning() {
       />
 
       <ScrollStatement
+        ek="planning.statement"
         kicker="Why planning"
         text="Good places are not accidents. They are *planned* — with people, nature and infrastructure in the same frame."
       />
 
       <section className="sec">
-        <SectionHead kicker="Planning services" title="From local area *to region*" link="contact" linkLabel="Book a consultation" />
-        <ServiceGrid items={PLANNING_SERVICES} />
+        <SectionHead ek="planning.svc.head" kicker="Planning services" title="From local area *to region*" link="contact" linkLabel="Book a consultation" />
+        <ServiceGrid ek="planning.svc" items={PLANNING_SERVICES} />
       </section>
 
       <section className="sec grey">
-        <SectionHead kicker="GIS & spatial" title="Decisions built *on the map*" />
-        <ServiceGrid items={GIS_SERVICES} />
+        <SectionHead ek="planning.gis.head" kicker="GIS & spatial" title="Decisions built *on the map*" />
+        <ServiceGrid ek="planning.gis" items={GIS_SERVICES} />
       </section>
 
       <section className="sec">
-        <SectionHead kicker="Transportation services" title="Movement designed *as a network*" />
-        <ServiceGrid items={TRANSPORT_SERVICES} />
+        <SectionHead ek="planning.transport.head" kicker="Transportation services" title="Movement designed *as a network*" />
+        <ServiceGrid ek="planning.transport" items={TRANSPORT_SERVICES} />
         <ConsultPopup />
       </section>
 
       <section className="sec grey">
-        <SectionHead kicker="Software expertise" title="Tools we *model with*" />
-        <Principles items={SOFTWARE} />
+        <SectionHead ek="planning.software.head" kicker="Software expertise" title="Tools we *model with*" />
+        <Principles ek="planning.software" items={SOFTWARE} />
       </section>
     </>
   );

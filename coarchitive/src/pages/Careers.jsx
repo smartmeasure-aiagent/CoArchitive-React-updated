@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Mail, Copy, Check, X } from "lucide-react";
 import { PageHero, SectionHead, Principles, HoverList } from "../components/UI.jsx";
 import { Reveal } from "../components/Motion.jsx";
+import { T } from "../content/Editable.jsx";
 import { ROLES, VALUES, CONTACT, HIRING, EXPERTISE, WORK_WITH_US } from "../data.js";
 
 // each role borrows the photograph of the discipline it sits in
@@ -104,6 +105,7 @@ export default function Careers() {
   return (
     <>
       <PageHero
+        ek="hero.careers"
         eyebrow="Careers"
         title="Build across *boundaries.*"
         lede="If you want to work next to people whose training is nothing like yours, this is the right practice."
@@ -112,17 +114,19 @@ export default function Careers() {
       />
 
       <section className="sec grey">
-        <SectionHead kicker="Ways to join" title="Jobs, internships *and freelancing*" />
-        <Principles items={WORK_WITH_US} />
+        <SectionHead ek="careers.join.head" kicker="Ways to join" title="Jobs, internships *and freelancing*" />
+        <Principles ek="careers.join" items={WORK_WITH_US} />
         <Reveal as="p" className="note">
-          To apply for an internship or freelance work, write to{" "}
-          <span className="note-mail">{CONTACT.email}</span> with your CV and portfolio.
+          <T as="span" k="careers.join.note" markup={false} multiline>
+            {`To apply for an internship or freelance work, write to ${CONTACT.email} with your CV and portfolio.`}
+          </T>
         </Reveal>
       </section>
 
       <section className="sec">
-        <SectionHead kicker="Open roles" title="Where we're *hiring*" />
+        <SectionHead ek="careers.roles.head" kicker="Open roles" title="Where we're *hiring*" />
         <HoverList
+          ek="careers.roles"
           items={ROLES.map((r) => ({
             title: r.title,
             meta: `${r.team} · ${r.type} · ${r.loc}`,
@@ -131,27 +135,32 @@ export default function Careers() {
           }))}
         />
         <Reveal as="p" className="note">
-          Don't see your discipline? Write to <span className="note-mail">{CONTACT.email}</span> — we
-          read everything.
+          <T as="span" k="careers.roles.note" markup={false} multiline>
+            {`Don't see your discipline? Write to ${CONTACT.email} — we read everything.`}
+          </T>
         </Reveal>
       </section>
 
       <section className="sec dark">
-        <SectionHead kicker="How we hire" title="Four steps, *no surprises*" />
+        <SectionHead ek="careers.hire.head" kicker="How we hire" title="Four steps, *no surprises*" />
         <ol className="process">
           {HIRING.map(([t, d], i) => (
-            <Reveal as="li" key={t} delay={i * 120}>
+            <Reveal as="li" key={i} delay={i * 120}>
               <span className="process-no">{String(i + 1).padStart(2, "0")}</span>
-              <h3>{t}</h3>
-              <p>{d}</p>
+              <T as="h3" k={`careers.hire.${i}.title`} markup={false}>
+                {t}
+              </T>
+              <T as="p" k={`careers.hire.${i}.body`} markup={false}>
+                {d}
+              </T>
             </Reveal>
           ))}
         </ol>
       </section>
 
       <section className="sec grey">
-        <SectionHead kicker="Working here" title="What you can *expect*" />
-        <Principles items={VALUES} />
+        <SectionHead ek="careers.working.head" kicker="Working here" title="What you can *expect*" />
+        <Principles ek="careers.working" items={VALUES} />
       </section>
 
       {role && <ApplyDialog role={role} onClose={() => setRole(null)} />}
