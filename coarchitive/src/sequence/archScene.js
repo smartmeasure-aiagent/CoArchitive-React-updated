@@ -3,32 +3,33 @@
 
    Loads one of the three delivered GLB models (Architecture-1/2/3.glb) and maps
    scroll progress (0 → 1) onto the baked "Construction" animation, so the
-   building assembles as the visitor scrolls, and the camera dollies from a site
-   overview down to a three-quarter view of the finished house. The GLB ships
-   geometry + keyframes only; camera, lights, sky and shadow are added here.
+   building assembles as the visitor scrolls. The first ~75% builds the house in
+   CoArchitive's daytime study-model palette; the final stretch is the pay-off —
+   a procedural city rises and lights up around it, the sky shifts to dusk, the
+   house windows glow and the camera pulls back to a bright aerial city view.
 
-   Loaded lazily (see ArchHero.jsx) so Three.js + the model arrive as their own
-   chunk after the poster frame has painted.
+   The GLB ships geometry + keyframes only; camera, lights, sky, shadow and the
+   city layer are added here. Loaded lazily (see ArchHero.jsx).
    =========================================================================== */
 
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const smooth = (t) => t * t * (3 - 2 * t);
 
-// Site palette ramp (dark → light), so the model reads as a branded study model
-// in CoArchitive's paper / sand / green tones rather than a generic render.
+// Site palette ramp (dark → light): the model reads as a branded study model in
+// CoArchitive's paper / sand / green tones rather than a generic render.
 const PALETTE = [
-  { l: 0.0, c: "#13301f" }, // green-deep
-  { l: 0.22, c: "#2f5a40" }, // green-soft
-  { l: 0.42, c: "#9a8f74" }, // deep tan
-  { l: 0.6, c: "#c9bfa6" }, // tan / sand
-  { l: 0.8, c: "#e7e1d2" }, // paper
-  { l: 1.0, c: "#f6f3ec" }, // paper-hi
+  { l: 0.0, c: "#13301f" },
+  { l: 0.22, c: "#2f5a40" },
+  { l: 0.42, c: "#9a8f74" },
+  { l: 0.6, c: "#c9bfa6" },
+  { l: 0.8, c: "#e7e1d2" },
+  { l: 1.0, c: "#f6f3ec" },
 ];
 
 function toneFor(color) {
-  // perceived brightness of the original material colour (0..1)
   const lum = 0.21 * color.r + 0.72 * color.g + 0.07 * color.b;
   let a = PALETTE[0];
   let b = PALETTE[PALETTE.length - 1];
@@ -43,10 +44,13 @@ function toneFor(color) {
   return new THREE.Color(a.c).lerp(new THREE.Color(b.c), clamp(t, 0, 1));
 }
 
-// Recolour a loaded model into the site palette. Glazing (transparent/emissive)
-// is kept but cooled to a soft site blue-green.
+// Recolour a loaded model into the site palette; glazing is kept but cooled and
+// gains a warm emissive so the finished house can light up at dusk. Returns the
+// glazing materials so their glow can be ramped with scroll.
 function brandMaterials(root) {
   const cache = new Map();
+  const glass = [];
+  const warm = new THREE.Color("#ffcf8f");
   const remap = (m) => {
     if (cache.has(m)) return cache.get(m);
     const glassy = m.transparent === true || (m.opacity ?? 1) < 0.95;
@@ -54,33 +58,45 @@ function brandMaterials(root) {
     const next = new THREE.MeshStandardMaterial({
       color: glassy ? new THREE.Color("#8fb4b0") : toneFor(base),
       roughness: glassy ? 0.25 : 0.82,
-      metalness: 0.0,
+      metalness: 0,
       transparent: glassy,
-      opacity: glassy ? 0.42 : 1,
+      opacity: glassy ? 0.5 : 1,
+      emissive: glassy ? warm.clone() : new THREE.Color("#000000"),
+      emissiveIntensity: 0,
       envMapIntensity: 0.4,
     });
     cache.set(m, next);
+    if (glassy) glass.push(next);
     return next;
   };
   root.traverse((o) => {
     if (!o.isMesh || !o.material) return;
     o.material = Array.isArray(o.material) ? o.material.map(remap) : remap(o.material);
   });
+  return glass;
 }
 
-// soft vertical sky→sand gradient so the pale building always has contrast
-function gradientTexture() {
+// A tileable "lit windows" emissive map for the city buildings.
+function windowTexture() {
   const c = document.createElement("canvas");
-  c.width = 4;
-  c.height = 256;
+  c.width = 64;
+  c.height = 64;
   const g = c.getContext("2d");
-  const grd = g.createLinearGradient(0, 0, 0, 256);
-  grd.addColorStop(0, "#dfe6e1");
-  grd.addColorStop(0.55, "#e9e3d5");
-  grd.addColorStop(1, "#cfc5af");
-  g.fillStyle = grd;
-  g.fillRect(0, 0, 4, 256);
+  g.fillStyle = "#000000";
+  g.fillRect(0, 0, 64, 64);
+  const cols = 6;
+  const rows = 6;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const on = Math.random() > 0.35;
+      g.fillStyle = on
+        ? ["#ffe6b0", "#ffd890", "#fff4d6", "#ffcf8f"][Math.floor(Math.random() * 4)]
+        : "#120f0a";
+      g.fillRect(x * 10 + 3, y * 10 + 3, 6, 6);
+    }
+  }
   const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
@@ -95,9 +111,41 @@ export function createArchScene(canvas, opts = {}) {
   renderer.toneMappingExposure = 0.96;
 
   const scene = new THREE.Scene();
-  scene.background = gradientTexture();
 
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 5000);
+  // --- gradient sky dome, lerped day → dusk via uniforms ---
+  const DAY = { top: new THREE.Color("#c7d4da"), mid: new THREE.Color("#e8dfd0"), bot: new THREE.Color("#d6ccb5") };
+  // deep teal-green dusk, on-brand, so the warm window lights read as bright
+  const DUSK = { top: new THREE.Color("#0a2130"), mid: new THREE.Color("#1f4a39"), bot: new THREE.Color("#0b1813") };
+  const skyUniforms = {
+    uTop: { value: DAY.top.clone() },
+    uMid: { value: DAY.mid.clone() },
+    uBot: { value: DAY.bot.clone() },
+  };
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 32, 16),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      uniforms: skyUniforms,
+      vertexShader: `
+        varying float vH;
+        void main(){
+          vH = normalize(position).y * 0.5 + 0.5;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+      fragmentShader: `
+        varying float vH;
+        uniform vec3 uTop; uniform vec3 uMid; uniform vec3 uBot;
+        void main(){
+          vec3 c = vH > 0.5 ? mix(uMid, uTop, (vH - 0.5) * 2.0) : mix(uBot, uMid, vH * 2.0);
+          gl_FragColor = vec4(c, 1.0);
+        }`,
+    })
+  );
+  sky.frustumCulled = false;
+  scene.add(sky);
+
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 20000);
 
   const hemi = new THREE.HemisphereLight(0xeaf2ff, 0x6f7a63, 0.6);
   scene.add(hemi);
@@ -107,9 +155,12 @@ export function createArchScene(canvas, opts = {}) {
   sun.castShadow = true;
   scene.add(sun);
   scene.add(sun.target);
+  // warm fill that comes up at dusk, so the lit city reads as bright
+  const cityGlow = new THREE.PointLight(0xffca7a, 0, 0);
+  scene.add(cityGlow);
 
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(8000, 8000),
+    new THREE.PlaneGeometry(40000, 40000),
     new THREE.ShadowMaterial({ opacity: 0.22 })
   );
   ground.rotation.x = -Math.PI / 2;
@@ -132,19 +183,76 @@ export function createArchScene(canvas, opts = {}) {
   let progressTarget = 0;
   let progressCur = 0;
 
-  function placeCamera(p) {
-    // dolly: high, far site overview → lower, closer three-quarter view
-    const a = baseAngle + p * 0.5;
-    const dist = radius * (3.5 - p * 1.25);
-    const hgt = center.y + radius * (1.7 - p * 0.95);
+  // city layer, built once the model is framed
+  let cityGroup = null;
+  let cityMat = null; // shared building material (emissive windows)
+  let lampMat = null; // street-lamp emissive
+  let glassMats = [];
+
+  function buildCity(baseY) {
+    cityGroup = new THREE.Group();
+    cityGroup.position.y = baseY;
+
+    cityMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color("#34463a"),
+      roughness: 0.9,
+      metalness: 0,
+      emissive: new THREE.Color("#ffce86"),
+      emissiveMap: windowTexture(),
+      emissiveIntensity: 0,
+    });
+    lampMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color("#2a2a26"),
+      emissive: new THREE.Color("#ffd27a"),
+      emissiveIntensity: 0,
+    });
+
+    const box = new THREE.BoxGeometry(1, 1, 1);
+    const lamp = new THREE.SphereGeometry(0.06 * radius, 8, 8);
+    const span = 6; // grid half-extent in blocks
+    const step = radius * 1.35;
+    for (let gx = -span; gx <= span; gx++) {
+      for (let gz = -span; gz <= span; gz++) {
+        const dx = gx * step;
+        const dz = gz * step;
+        const fromCenter = Math.hypot(dx, dz);
+        if (fromCenter < radius * 1.5) continue; // leave room for the house
+        // thin the far field a little, randomly
+        if (fromCenter > radius * 6 && Math.random() > 0.6) continue;
+        const h = radius * (0.7 + Math.random() * Math.random() * 3.2);
+        const w = step * (0.42 + Math.random() * 0.22);
+        const d = step * (0.42 + Math.random() * 0.22);
+        const b = new THREE.Mesh(box, cityMat);
+        b.scale.set(w, h, d);
+        b.position.set(dx + (Math.random() - 0.5) * step * 0.3, h / 2, dz + (Math.random() - 0.5) * step * 0.3);
+        b.castShadow = false;
+        b.receiveShadow = false;
+        cityGroup.add(b);
+        // a street lamp near some blocks
+        if (Math.random() > 0.7) {
+          const l = new THREE.Mesh(lamp, lampMat);
+          l.position.set(dx - step * 0.4, radius * 0.18, dz - step * 0.4);
+          cityGroup.add(l);
+        }
+      }
+    }
+    cityGroup.visible = false;
+    scene.add(cityGroup);
+  }
+
+  function placeCamera(p, cl) {
+    // dolly in while building, then pull back + up to an aerial city at the end
+    const a = baseAngle + p * 0.5 + cl * 0.22;
+    const dist = radius * (3.5 - p * 1.25) + cl * radius * 4.2;
+    const hgt = center.y + radius * (1.7 - p * 0.95) + cl * radius * 2.8;
     camera.position.set(
       center.x + Math.cos(a) * dist,
       hgt,
       center.z + Math.sin(a) * dist
     );
-    camera.lookAt(center.x, center.y + radius * 0.12, center.z);
-    camera.near = Math.max(0.1, dist / 90);
-    camera.far = dist * 9;
+    camera.lookAt(center.x, center.y + radius * (0.12 + cl * 0.25), center.z);
+    camera.near = Math.max(0.1, dist / 120);
+    camera.far = dist * 12 + radius * 60;
     camera.updateProjectionMatrix();
   }
 
@@ -170,7 +278,13 @@ export function createArchScene(canvas, opts = {}) {
     sun.shadow.bias = -0.0004;
     sc.updateProjectionMatrix();
 
-    placeCamera(0);
+    sky.scale.setScalar(radius * 120);
+    sky.position.copy(center);
+    cityGlow.position.set(center.x, center.y + radius * 2.5, center.z);
+    cityGlow.distance = radius * 30;
+
+    buildCity(box.min.y);
+    placeCamera(0, 0);
   }
 
   function load(url) {
@@ -180,7 +294,7 @@ export function createArchScene(canvas, opts = {}) {
         (gltf) => {
           if (!alive) return;
           model = gltf.scene;
-          brandMaterials(model);
+          glassMats = brandMaterials(model);
           model.traverse((o) => {
             if (o.isMesh) {
               o.castShadow = true;
@@ -191,11 +305,7 @@ export function createArchScene(canvas, opts = {}) {
           if (gltf.animations && gltf.animations.length) {
             mixer = new THREE.AnimationMixer(model);
             duration = gltf.animations[0].duration || 1;
-            gltf.animations.forEach((clip) => {
-              // played but never advanced by delta — the pose is set purely by
-              // setProgress → mixer.setTime (a paused action ignores setTime).
-              mixer.clipAction(clip).play();
-            });
+            gltf.animations.forEach((clip) => mixer.clipAction(clip).play());
             mixer.setTime(0);
           }
           frameModel();
@@ -208,9 +318,32 @@ export function createArchScene(canvas, opts = {}) {
     });
   }
 
-  // scroll handle: 0 (empty site) … 1 (finished building)
   function setProgress(p) {
     progressTarget = clamp(p, 0, 1);
+  }
+
+  // ramp the dusk / city / lights on, driven by how far into the end we are
+  function applyCity(p) {
+    const cl = smooth(clamp((p - 0.62) / 0.38, 0, 1)); // 0 until 62%, 1 at the end
+    // sky day → dusk
+    skyUniforms.uTop.value.copy(DAY.top).lerp(DUSK.top, cl);
+    skyUniforms.uMid.value.copy(DAY.mid).lerp(DUSK.mid, cl);
+    skyUniforms.uBot.value.copy(DAY.bot).lerp(DUSK.bot, cl);
+    // sunlight dims toward evening, warm fill comes up
+    sun.intensity = 2.0 * (1 - cl * 0.62);
+    hemi.intensity = 0.6 * (1 - cl * 0.45);
+    cityGlow.intensity = cl * radius * 2.2;
+    renderer.toneMappingExposure = 0.96 + cl * 0.34;
+    // city rises and lights up
+    if (cityGroup) {
+      cityGroup.visible = cl > 0.001;
+      cityGroup.scale.y = 0.08 + cl * 0.92;
+      if (cityMat) cityMat.emissiveIntensity = cl * 1.9;
+      if (lampMat) lampMat.emissiveIntensity = cl * 3.2;
+    }
+    // the finished house windows glow
+    for (const m of glassMats) m.emissiveIntensity = cl * 1.3;
+    return cl;
   }
 
   function resize(w, h) {
@@ -218,17 +351,17 @@ export function createArchScene(canvas, opts = {}) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    if (ready) placeCamera(progressCur);
+    if (ready) placeCamera(progressCur, smooth(clamp((progressCur - 0.62) / 0.38, 0, 1)));
   }
 
   function tick() {
     if (!alive) return;
     rafId = requestAnimationFrame(tick);
-    // ease toward the scroll target so scrubbing stays smooth
     progressCur += (progressTarget - progressCur) * 0.12;
     if (ready) {
       if (mixer) mixer.setTime(progressCur * duration);
-      placeCamera(progressCur);
+      const cl = applyCity(progressCur);
+      placeCamera(progressCur, cl);
     }
     renderer.render(scene, camera);
   }
@@ -242,7 +375,6 @@ export function createArchScene(canvas, opts = {}) {
     cancelAnimationFrame(rafId);
     rafId = 0;
     mixer?.stopAllAction();
-    scene.background?.dispose?.();
     scene.traverse((o) => {
       if (o.geometry) o.geometry.dispose?.();
       if (o.material) {
